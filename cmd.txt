@@ -1,0 +1,49 @@
+=============================6.2在URDF创建机器人===================================
+1、创建功能包
+ros2 pkg create fishbot_description --build-type ament_cmake --license Apache-2.0
+cd fishbot_description
+mkdir urdf
+2、新建urdf文件
+touch first_robot.urdf
+urdf_to_graphviz first_robot.urdf   转成pdf查看link之间关系
+
+3、在rviz中打开urdf文件，就可以看到机器人了。但是，虽然可以通过rviz2中RobotModel模块加载urdf文件的方式来显示机器人模型，但可以看到会出现 TF 错误，这是因为 RViz 要显示机器人模型，除了需要 URDF 之外，还需要通过 TF 输入各个部件之间的位姿关系。在 ROS 2 中，使用 robot_state_publisher 和 joint_state_publisher 可以将 URDF 文件转化为话题并将部件之间的位姿关系通过 TF 发布出来。
+
+4、新建launch文件display_robot.launch.py，并修改CMakelists.txt，将launch、urdf、config文件夹安装至share/${PROJECT_NAME}
+一次性启动 关节状态发布节点、机器人状态发布节点、rviz 3个节点
+
+获取机器人描述字符串：
+urdf文件：cat /path/to/robot.urdf
+xacro文件：则使用xacro /path/to/robot.xacro
+
+5、显示机器人模型
+使用urdf文件显示机器人模型：
+ros2 launch fishbot_description display_robot.launch.py 
+使用xacro文件显示机器人模型（传参）：
+ros2 launch fishbot_description display_robot.launch.py model:=/home/ncy/my_projects/
+ros2_Learn/chapt6/chapt6_ws/src/fishbot_description/urdf/first_robot.urdf.xacro
+
+====================================创建fishbot机器人==========================================
+6、创建机器人及传感器部件
+camera.urdf.xacro
+imu.urdf.xacro
+laser.urdf.xacro
+base.urdf.xacro
+first_robot.urdf.xacro
+
+ros2 launch fishbot_description display_robot.launch.py model:=/home/ncy/my_projects/ros2_Learn/chapt6/chapt6_ws/src/fishbot_description/urdf/fishbot/fishbot.urdf.xacro
+
+问题：加载first_robot.urdf.xacro显示机器人时，多出来一个imu_link。其实是因为之前的.rviz默认加载了之前的.urdf文件，导致每次进rviz都有imu_link
+解决办法：Robot_Model切换为话题订阅，订阅/robot_description
+
+=============================================学习gazebo=============================================
+gazebo模型导入：见书P184
+ros2 launch fishbot_description gazebo_sim.launch.py
+
+
+
+
+
+sudo apt install ros-$ROS_DIRTRO-xacro
+sudo apt install gazebo
+sudo apt install ros-$ROS_DISTRO-gazebo-ros-pkgs

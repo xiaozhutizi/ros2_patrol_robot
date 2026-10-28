@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/common_inertia.xacro" />
+    <xacro:macro name="camera_xacro" params="xyz">
+        <!-- ============相机模块================ -->
+        <link name="camera_link">
+            <visual>
+                <origin xyz="0 0 0.0" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.02 0.10 0.02" />
+                </geometry>
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 0.8"/>
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0.0" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.02 0.10 0.02" />
+                </geometry>
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 0.8"/>
+                </material>
+            </collision>
+            <xacro:box_inertia m="0.01" w="0.02" h="0.10" d="0.02" />
+        </link>
+
+        <link name="camera_optical_link"></link>    
+        <joint name="camera_optical_joint" type="fixed">
+            <parent link="camera_link" />
+            <child link="camera_optical_link" />
+            <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}" />    
+        </joint>
+
+        <joint name="camera_joint" type="fixed">
+            <parent link="base_link" />
+            <child link="camera_link" />
+            <origin xyz="${xyz}" />
+        </joint>
+    </xacro:macro>
+
+</robot>
+
+
+
+<!-- 为什么必须单独建 optical frame？
+因为：
+• URDF 里相机本体 camera_link 的 Z 轴朝前（方便在机身摆位）
+• 但 ROS 图像消息约定 Z 轴要沿着视线指向物体
+• 两者轴向定义不同，所以必须新建一个 camera_optical_link，通过关节旋转把坐标轴"掰"成 ROS 约定的方向，而不能直接复用 camera_link
+
+rpy="${-pi/2} 0 ${-pi/2}" 绕固定坐标系旋转
+├── 第1个旋转：绕 X 轴转 -90°  → 把 Z 轴转到朝前指向物点
+└── 第3个旋转：绕 Z 轴转 -90°  → 把 X 轴调整到图像向右 -->

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="gazebo_control_plugin">
+        <gazebo>
+            <plugin name='diff_drive' filename='libgazebo_ros_diff_drive.so'>
+                <ros>
+                    <namespace>/</namespace>
+                    <remapping>cmd_vel:=cmd_vel</remapping>     <!-- 订阅 /cmd_vel（速度指令） -->
+                    <remapping>odom:=odom</remapping>           <!-- 发布 /odom（里程计） -->
+                </ros>
+                <update_rate>30</update_rate>
+                <!-- wheels 告诉差速插件：机器人左右两边的驱动轮是 URDF 里的 left_wheel_joint 和 right_wheel_joint 插件根据 cmd_vel 换算这两个关节需要转多快。 -->
+                <left_joint>left_wheel_joint</left_joint>   <!-- 在fishbot.urdf.xacro中定义的 左轮关节：left_wheel_joint -->
+                <right_joint>right_wheel_joint</right_joint>  <!-- 在fishbot.urdf.xacro中定义的 右轮关节：right_wheel_joint -->
+                <!-- kinematics -->
+                <wheel_separation>0.2</wheel_separation>        <!-- 左右轮间距 0.2m -->
+                <wheel_diameter>0.064</wheel_diameter>              <!-- 轮子直径 0.064m -->
+                <!-- limits -->
+                <max_wheel_torque>20</max_wheel_torque>         <!-- 最大轮扭矩 20 N·m -->
+                <max_wheel_acceleration>1.0</max_wheel_acceleration> <!-- 最大轮加速度 1.0 m/s^2 -->
+                <!-- output -->
+                <publish_odom>true</publish_odom>                    <!-- 发布 话题 `/odom` 里程消息：机器人在 `odom` 坐标系下的位置 (x,y)、姿态（yaw 航向角）线速度 linear.x、角速度 angular.z 协方差矩阵 可用于导航等应用 -->
+                <publish_odom_tf>true</publish_odom_tf>             <!-- 发布 odom→base_footprint 的 TF ，用于RViz可视化底盘位姿变化 -->
+                <publish_wheel_tf>true</publish_wheel_tf>          <!-- 发布 `base_link → left_wheel_link`、`base_link → right_wheel_link` 的 TF ，用于RViz可视化轮子同步转动 -->
+
+                <odometry_frame>odom</odometry_frame>              <!-- 父坐标系：odom -->
+                <robot_base_frame>base_footprint</robot_base_frame> <!-- 子坐标系：base_footprint -->
+            </plugin>
+        </gazebo>
+    </xacro:macro>
+</robot>
+
+<!-- 
+插件以仿真起点位置建立固定的 odom 坐标系（父），小车移动时，持续计算跟随小车的 base_footprint（子）在 odom 里面的位姿。
+
+你发布 /cmd_vel → diff_drive插件
+插件运动学解算 → 左右轮目标角速度 → 传给Gazebo
+Gazebo物理引擎驱动轮子旋转，实时得到轮子关节角度
+diff_drive读取轮子角度 → 广播轮子TF(base_link→left/right_wheel_link)
+同时插件积分轮子转角 → 算出底盘位姿，发布/odom 和 odom→base_footprint TF
+
+-->
