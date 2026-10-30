@@ -69,11 +69,11 @@ def generate_launch_description():
     # 5a. joint_state_broadcaster：
     #     负责把 Gazebo 里每个关节的实际角度/速度发布到 /joint_states，
     #     取代了 display_robot.launch.py 里 joint_state_publisher 的作用。
-    # load_joint_state_controller = launch.actions.ExecuteProcess(
-    #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-    #          'fishbot_joint_state_broadcaster'],
-    #     output='screen'
-    # )
+    load_joint_state_controller = launch.actions.ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+             'fishbot_joint_state_broadcaster'],
+        output='screen'
+    )
 
     # 5b. effort_controller（本文件中暂未被事件链引用，但可以手动启用）
     # load_fishbot_effort_controller = launch.actions.ExecuteProcess(
@@ -105,20 +105,18 @@ def generate_launch_description():
         robot_state_publisher_node,
         launch_gazebo,
         spawn_entity_node,
-        # """
-        # # 事件 1：spawn_entity 进程退出（成功加载机器人）后，触发加载 joint_state_broadcaster
-        # launch.actions.RegisterEventHandler(
-        #     event_handler=launch.event_handlers.OnProcessExit(
-        #         target_action=spawn_entity_node,
-        #         on_exit=[load_joint_state_controller],)
-        # ),
+        # 事件 1：spawn_entity 进程退出（成功加载机器人）后，触发加载 joint_state_broadcaster
+        launch.actions.RegisterEventHandler(
+            event_handler=launch.event_handlers.OnProcessExit(
+                target_action=spawn_entity_node,
+                on_exit=[load_joint_state_controller],)
+        ),
         # # 事件 2：joint_state_broadcaster 加载完后，触发加载 diff_drive_controller
         # launch.actions.RegisterEventHandler(
         #     event_handler=launch.event_handlers.OnProcessExit(
         #         target_action=load_joint_state_controller,
         #         on_exit=[load_fishbot_diff_drive_controller],)
         # ),
-        # """
     ])
 
 

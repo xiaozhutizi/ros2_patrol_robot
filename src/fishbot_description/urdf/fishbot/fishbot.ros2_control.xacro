@@ -1,10 +1,28 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- ============ ROS2 Control 硬件接口宏 ============
+         与 gazebo_control_plugin.xacro 互斥，二选一启用。
+         启用本方案时需同时：1) 注释掉 gazebo_control_plugin 宏（已切换时完成）
+           2) 存在 config/fishbot_ros2_controller.yaml 控制器配置
+           3) launch 文件里启用 ros2 control load_controller 事件链 -->
     <xacro:macro name="fishbot_ros2_control">
-    <ros2_control name="FishBotGazeboSystem" type="system">
+        <!-- ros2_control 硬件系统声明：
+             · name= 硬件系统唯一标识
+             · type=system=表明是一个完整的"系统"而非单一传感器
+             · hardware/plugin=使用 Gazebo 仿真后端插件
+                gazebo_ros2_control/GazeboSystem，
+                它负责把 ros2_control 命令翻译成 Gazebo 物理引擎的关节驱动 -->
+        <ros2_control name="FishBotGazeboSystem" type="system">
             <hardware>
                 <plugin>gazebo_ros2_control/GazeboSystem</plugin>
             </hardware>
+            <!-- 左右轮关节声明（结构完全对称）：
+                 command_interface = 控制器可"写"的输出接口（给轮子下指令）
+                 state_interface   = 硬件反馈的"读"接口（轮子实际状态）
+                 接口类型：
+                   · velocity=速度控制, 范围 [-1, 1] rad/s
+                   · effort=力矩控制, 范围 [-0.1, 0.1] N·m
+                   · position/velocity/effort (state)= 向上反馈实际值 -->
             <joint name="left_wheel_joint">
                 <command_interface name="velocity">
                     <param name="min">-1</param>
@@ -32,14 +50,23 @@
                 <state_interface name="effort" />
             </joint>
         </ros2_control>
+
+        <!-- Gazebo 桥接插件：libgazebo_ros2_control.so
+             · 作用：把上面的 ros2_control 硬件声明接到 Gazebo 物理引擎，
+               让 diff_drive_controller 的速度指令能真正驱动轮子转动
+             · parameters=加载控制器配置 yaml（定义用什么控制器、参数多少）
+             · ros/remapping=把 controller 内部默认话题暴露出来
+               /fishbot_diff_drive_controller/cmd_vel_unstamped → /cmd_vel
+               /fishbot_diff_drive_controller/odom              → /odom
+               这样外部节点（如键盘遥控）发 /cmd_vel 就能控制机器人 -->
         <gazebo>
-        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-            <parameters>$(find fishbot_description)/config/fishbot_ros2_controller.yaml</parameters>
-            <ros>
-                <remapping>/fishbot_diff_drive_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
-                <remapping>/fishbot_diff_drive_controller/odom:=/odom</remapping>
-            </ros>
-        </plugin>
-</gazebo>
+            <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+                <parameters>$(find fishbot_description)/config/fishbot_ros2_controller.yaml</parameters>
+                <ros>
+                    <remapping>/fishbot_diff_drive_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+                    <remapping>/fishbot_diff_drive_controller/odom:=/odom</remapping>
+                </ros>
+            </plugin>
+        </gazebo>
     </xacro:macro>
 </robot>

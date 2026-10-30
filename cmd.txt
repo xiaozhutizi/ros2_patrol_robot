@@ -47,3 +47,5 @@ ros2 launch fishbot_description gazebo_sim.launch.py
 sudo apt install ros-$ROS_DIRTRO-xacro
 sudo apt install gazebo
 sudo apt install ros-$ROS_DISTRO-gazebo-ros-pkgs
+
+在xzcro中，如果你的注释中有:，对的，就是冒号，后面不可以加空格，否则启动不了ros2_controller 的某些话题，而且会报类似于xml有问题的奇怪的错误，请检查所有引入的文件中是否有:加空格组合，删掉就可以了。

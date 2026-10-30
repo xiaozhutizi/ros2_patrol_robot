@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="$(find fishbot_description)/urdf/fishbot/common_inertia.xacro" />
     <xacro:macro name="base_xacro" params="length radius">
-        <!-- 虚拟部件:内容为空,在地面上（Z=0），用于固定机器人在地面上的位置 -->
+        <!-- 虚拟部件=内容为空,在地面上(Z=0)用于固定机器人在地面上的位置 -->
         <!-- base_footprint 是 ROS 社区的约定俗成而非标准强制，它作为 TF 树的根锚定在地面 Z=0，通过一个 fixed joint 在 Z 方向偏移到底盘中心 base_link，让上层导航/定位/传感器安装都有一个统一的"参考地面系"。 -->
         <link name="base_footprint" />
         <!-- 身体组件 -->
