@@ -76,10 +76,10 @@ def generate_launch_description():
     )
 
     # 5b. effort_controller（本文件中暂未被事件链引用，但可以手动启用）
-    # load_fishbot_effort_controller = launch.actions.ExecuteProcess(
-    #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-    #          'fishbot_effort_controller'],
-    #     output='screen')
+    load_fishbot_effort_controller = launch.actions.ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+             'fishbot_effort_controller'],
+        output='screen')
 
     # 5c. diff_drive_controller：
     #     差速驱动控制器，订阅 /cmd_vel（线速度+角速度），
@@ -111,12 +111,12 @@ def generate_launch_description():
                 target_action=spawn_entity_node,
                 on_exit=[load_joint_state_controller],)
         ),
-        # # 事件 2：joint_state_broadcaster 加载完后，触发加载 diff_drive_controller
-        # launch.actions.RegisterEventHandler(
-        #     event_handler=launch.event_handlers.OnProcessExit(
-        #         target_action=load_joint_state_controller,
-        #         on_exit=[load_fishbot_diff_drive_controller],)
-        # ),
+        # 事件 2：joint_state_broadcaster 加载完后，触发加载 diff_drive_controller
+        launch.actions.RegisterEventHandler(
+            event_handler=launch.event_handlers.OnProcessExit(
+                target_action=load_joint_state_controller,
+                on_exit=[load_fishbot_effort_controller],)
+        ),
     ])
 
 
