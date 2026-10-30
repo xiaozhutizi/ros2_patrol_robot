@@ -18,8 +18,8 @@ controller_manager:
       use_sim_time: true
     fishbot_effort_controller:          # 通用力矩控制器:直接下发左右轮力矩值，使用下面的fishbot_diff_drive_controller 控制器就不启用此控制器
       type: effort_controllers/JointGroupEffortController
-    # fishbot_diff_drive_controller:      # 差速驱动控制器:订阅 /cmd_vel 线速度+角速度 → 逆运动学换算左右轮 → 命令下发。控制器内部自己算左右轮转速，属于**速度模式高层控制器**
-    #   type: diff_drive_controller/DiffDriveController
+    fishbot_diff_drive_controller:      # 差速驱动控制器:订阅 /cmd_vel 线速度+角速度 → 逆运动学换算左右轮 → 命令下发。控制器内部自己算左右轮转速，属于**速度模式高层控制器**
+      type: diff_drive_controller/DiffDriveController
 
 # ---------- 通用力矩控制器(备用) ----------
 # 手动控制单个或多个关节的力矩输出，日常巡航不启用。
@@ -39,41 +39,41 @@ fishbot_effort_controller:
 
 # ---------- 差速驱动控制器(核心) ----------
 # 订阅 /cmd_vel 线速度+角速度 → 逆运动学换算左右轮 → 命令下发。
-# fishbot_diff_drive_controller:
-#   ros__parameters:
-#     # --- 轮子映射 ---
-#     left_wheel_names: ["left_wheel_joint"]
-#     right_wheel_names: ["right_wheel_joint"]
+fishbot_diff_drive_controller:
+  ros__parameters:
+    # --- 轮子映射 ---
+    left_wheel_names: ["left_wheel_joint"]
+    right_wheel_names: ["right_wheel_joint"]
 
-#     # --- 运动学参数(决定控制精度) ---
-#     wheel_separation: 0.20              # 轮距，与 gazebo_control_plugin.xacro 里是 0.20 米保持一致。
-#     #wheels_per_side: 1                 # 每侧轮子数量，默认为 1 个。
-#     wheel_radius: 0.032                  # 轮子半径，与 wheel.urdf.xacro 里 radius=0.032 一致 ✓
+    # --- 运动学参数(决定控制精度) ---
+    wheel_separation: 0.20              # 轮距，与 gazebo_control_plugin.xacro 里是 0.20 米保持一致。
+    #wheels_per_side: 1                 # 每侧轮子数量，默认为 1 个。
+    wheel_radius: 0.032                  # 轮子半径，与 wheel.urdf.xacro 里 radius=0.032 一致 ✓
 
-#     # --- 微调系数(不改动 URDF 情况下"软修正"误差) ---
-#     wheel_separation_multiplier: 1.0
-#     left_wheel_radius_multiplier: 1.0
-#     right_wheel_radius_multiplier: 1.0
+    # --- 微调系数(不改动 URDF 情况下"软修正"误差) ---
+    wheel_separation_multiplier: 1.0
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
 
-#     # --- 里程计输出 ---
-#     publish_rate: 50.0                   # /odom 话题发布频率
-#     odom_frame_id: odom                  # 里程计坐标系(父)
-#     base_frame_id: base_footprint        # 机器人本体坐标系(子)
-#     # 6×6 协方差对角线: [x, y, z, roll, pitch, yaw]
-#     pose_covariance_diagonal: [0.001, 0.001, 0.0, 0.0, 0.0, 0.01]
-#     twist_covariance_diagonal: [0.001, 0.0, 0.0, 0.0, 0.0, 0.01]
+    # --- 里程计输出 ---
+    publish_rate: 50.0                   # /odom 话题发布频率
+    odom_frame_id: odom                  # 里程计坐标系(父)
+    base_frame_id: base_footprint        # 机器人本体坐标系(子)
+    # 6×6 协方差对角线: [x, y, z, roll, pitch, yaw]
+    pose_covariance_diagonal: [0.001, 0.001, 0.0, 0.0, 0.0, 0.01]
+    twist_covariance_diagonal: [0.001, 0.0, 0.0, 0.0, 0.0, 0.01]
 
-#     # --- 控制模式 ---
-#     open_loop: true                      # true=开环(仅按命令算, 不读实际轮速反馈)
-#                                          # false=闭环(用实际轮速修正, 更稳)
-#     enable_odom_tf: true                 # 是否发布 odom→base_footprint TF
+    # --- 控制模式 ---
+    open_loop: true                      # true=开环(仅按命令算, 不读实际轮速反馈)
+                                         # false=闭环(用实际轮速修正, 更稳)
+    enable_odom_tf: true                 # 是否发布 odom→base_footprint TF
 
-#     # --- 安全保护 ---
-#     cmd_vel_timeout: 0.5                 # 0.5秒没收到 /cmd_vel 就自动停车
-#                                          # (防止上位机断连后机器人继续跑)
+    # --- 安全保护 ---
+    cmd_vel_timeout: 0.5                 # 0.5秒没收到 /cmd_vel 就自动停车
+                                         # (防止上位机断连后机器人继续跑)
 
-#     # --- 话题协议 ---
-#     use_stamped_vel: false               # false=订阅 geometry_msgs/msg/Twist
-#                                          # true =订阅 geometry_msgs/msg/TwistStamped
-#                                          # 与 ros2_control.xacro 里的 remapping 配合
-#                                          # (/cmd_vel_unstamped → /cmd_vel)
+    # --- 话题协议 ---
+    use_stamped_vel: false               # false=订阅 geometry_msgs/msg/Twist
+                                         # true =订阅 geometry_msgs/msg/TwistStamped
+                                         # 与 ros2_control.xacro 里的 remapping 配合
+                                         # (/cmd_vel_unstamped → /cmd_vel)

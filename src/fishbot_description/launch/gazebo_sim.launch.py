@@ -84,10 +84,10 @@ def generate_launch_description():
     # 5c. diff_drive_controller：
     #     差速驱动控制器，订阅 /cmd_vel（线速度+角速度），
     #     转换成左右轮的 effort 指令发给 Gazebo 仿真引擎。
-    # load_fishbot_diff_drive_controller = launch.actions.ExecuteProcess(
-    #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-    #          'fishbot_diff_drive_controller'],
-    #     output='screen')
+    load_fishbot_diff_drive_controller = launch.actions.ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+             'fishbot_diff_drive_controller'],
+        output='screen')
 
     # ========== 6. 组装 LaunchDescription ==========
     # 启动顺序 & 事件链（关键！不能乱）：
@@ -115,7 +115,7 @@ def generate_launch_description():
         launch.actions.RegisterEventHandler(
             event_handler=launch.event_handlers.OnProcessExit(
                 target_action=load_joint_state_controller,
-                on_exit=[load_fishbot_effort_controller],)
+                on_exit=[load_fishbot_diff_drive_controller],)
         ),
     ])
 
